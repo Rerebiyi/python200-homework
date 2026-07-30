@@ -305,14 +305,15 @@ plt.xlabel("Predicted Grade")
 plt.ylabel("Actual Grade")
 
 plt.savefig(
-    "assignments_02/outputs/predicted_vs_actual_g3.png"
+    "assignments_02/outputs/predicted_vs_actual.png"
 )
 plt.close()
 
-# Points close to the line are good predictions.
-# Points above the line mean the prediction was too low.
-# Points below the line mean the prediction was too high.
-# The errors appear across the grade levels instead of in only one area.
+# Points close to the line are more accurate predictions.
+# Points above the line mean the model predicted too low.
+# Points below the line mean the model predicted too high.
+# The errors look fairly spread out across the grade levels.
+# They do not seem to happen only at the high or low end.
 
 print("\nSummary")
 print("The filtered dataset has", df_clean.shape[0], "students.")
@@ -393,3 +394,14 @@ print("Test R²:", g1_r2)
 # G1 can help find students who may struggle later.
 # To help students earlier, schools would need to use
 # past failures, absences, study habits, and other early information.
+
+
+# Task 6 Summary:
+# The filtered dataset has 357 students, and 72 students were used for testing.
+# The model is usually off by about 2.66 grade points.
+# Internet had the largest positive coefficient, so it increased the predicted
+# grade the most when the other features stayed the same.
+# Schoolsup had the largest negative coefficient, so it decreased the predicted
+# grade the most when the other features stayed the same.
+# One surprising result was that study time had only a small relationship
+# with final grades.
