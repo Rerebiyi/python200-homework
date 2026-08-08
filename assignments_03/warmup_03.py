@@ -105,6 +105,7 @@ display = ConfusionMatrixDisplay(
 
 display.plot()
 
+plt.tight_layout()
 plt.savefig("assignments_03/outputs/knn_confusion_matrix.png")
 plt.close()
 
@@ -176,6 +177,7 @@ for digit in range(10):
     axes[digit].set_title(str(digit))
     axes[digit].axis("off")
 
+plt.tight_layout()
 plt.savefig("assignments_03/outputs/sample_digits.png")
 plt.close()
 
@@ -197,6 +199,7 @@ scatter = plt.scatter(
 plt.colorbar(scatter, label="Digit")
 plt.xlabel("Principal Component 1")
 plt.ylabel("Principal Component 2")
+plt.title("PCA 2D Projection of Digits")
 
 plt.savefig("assignments_03/outputs/pca_2d_projection.png")
 plt.close()
@@ -206,7 +209,10 @@ plt.close()
 # Question 3
 cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
 
-plt.plot(cumulative_variance)
+plt.plot(
+    range(1, len(cumulative_variance) + 1),
+    cumulative_variance
+)
 
 plt.xlabel("Number of Components")
 plt.ylabel("Cumulative Explained Variance")
@@ -236,7 +242,7 @@ for i in range(5):
     axes[0, i].set_title(str(y_digits[i]))
     axes[0, i].axis("off")
 
-axes[0, 0].set_ylabel("Original")
+axes[0, 0].set_ylabel("Original", fontsize=10)
 
 # Reconstruction rows
 for row, n in enumerate(component_values, start=1):
@@ -246,8 +252,7 @@ for row, n in enumerate(component_values, start=1):
         axes[row, i].imshow(reconstructed_image, cmap="gray_r")
         axes[row, i].axis("off")
 
-    axes[row, 0].set_ylabel("n = " + str(n))
-
+    axes[row, 0].set_ylabel("n = " + str(n), fontsize=10)
 plt.tight_layout()
 plt.savefig("assignments_03/outputs/pca_reconstructions.png")
 plt.close()
