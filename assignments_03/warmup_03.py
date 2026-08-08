@@ -146,8 +146,8 @@ for c in c_values:
 
     model.fit(X_train_scaled, y_train)
 
-    coefficients = np.array([
-        estimator.coef_[0]
+    coefficients = np.vstack([
+        estimator.coef_
         for estimator in model.estimators_
     ])
 
@@ -234,6 +234,7 @@ def reconstruct_digit(sample_idx, scores, pca, n_components):
 
 
 component_values = [2, 5, 15, 40]
+row_labels = ["Original", "n = 2", "n = 5", "n = 15", "n = 40"]
 
 fig, axes = plt.subplots(5, 5, figsize=(8, 8))
 
@@ -243,7 +244,8 @@ for i in range(5):
     axes[0, i].set_title(str(y_digits[i]))
     axes[0, i].axis("off")
 
-axes[0, 0].set_ylabel("Original", fontsize=10)
+axes[0, 0].set_ylabel(row_labels[0], fontsize=10)
+
 
 # Reconstruction rows
 for row, n in enumerate(component_values, start=1):
@@ -253,7 +255,7 @@ for row, n in enumerate(component_values, start=1):
         axes[row, i].imshow(reconstructed_image, cmap="gray_r")
         axes[row, i].axis("off")
 
-    axes[row, 0].set_ylabel("n = " + str(n), fontsize=10)
+    axes[row, 0].set_ylabel(row_labels[row], fontsize=10)
 plt.tight_layout()
 plt.savefig("assignments_03/outputs/pca_reconstructions.png")
 plt.close()
