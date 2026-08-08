@@ -107,7 +107,10 @@ display = ConfusionMatrixDisplay(
 display.plot()
 
 plt.tight_layout()
-plt.savefig("assignments_03/outputs/knn_confusion_matrix.png")
+plt.savefig(
+    "assignments_03/outputs/pca_reconstructions.png",
+    bbox_inches="tight"
+)
 plt.close()
 
 # The model does not confuse any species because all predictions are correct.
@@ -244,7 +247,6 @@ for i in range(5):
     axes[0, i].set_title(str(y_digits[i]))
     axes[0, i].axis("off")
 
-axes[0, 0].set_ylabel(row_labels[0], fontsize=10)
 
 
 # Reconstruction rows
@@ -255,8 +257,15 @@ for row, n in enumerate(component_values, start=1):
         axes[row, i].imshow(reconstructed_image, cmap="gray_r")
         axes[row, i].axis("off")
 
-    axes[row, 0].set_ylabel(row_labels[row], fontsize=10)
-plt.tight_layout()
+
+# Add row labels
+fig.text(0.05, 0.83, "Original", va="center", fontsize=10)
+fig.text(0.05, 0.66, "n = 2", va="center", fontsize=10)
+fig.text(0.05, 0.49, "n = 5", va="center", fontsize=10)
+fig.text(0.05, 0.32, "n = 15", va="center", fontsize=10)
+fig.text(0.05, 0.15, "n = 40", va="center", fontsize=10)
+
+plt.tight_layout(rect=[0.10, 0, 1, 1])
 plt.savefig("assignments_03/outputs/pca_reconstructions.png")
 plt.close()
 
