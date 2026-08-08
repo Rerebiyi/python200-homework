@@ -73,6 +73,7 @@ y_pred_scaled = knn_scaled.predict(X_test_scaled)
 print("Scaled Accuracy:", accuracy_score(y_test, y_pred_scaled))
 
 # Scaling made the accuracy a little lower for this dataset.
+# The Iris features already work well together without scaling.
 
 # Question 3
 scores = cross_val_score(knn, X_train, y_train, cv=5)
@@ -90,8 +91,8 @@ for k in k_values:
     knn = KNeighborsClassifier(n_neighbors=k)
     scores = cross_val_score(knn, X_train, y_train, cv=5)
     print("k =", k, "Mean CV score:", scores.mean())
-
-# I would choose k = 5 because it has the highest mean score.
+    
+# I would choose k = 5 because it ties for the highest mean score and uses fewer neighbors.
 
 # --- Classifier Evaluation ---
 
