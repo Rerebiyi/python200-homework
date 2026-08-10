@@ -290,6 +290,10 @@ for depth in depths:
     print("Training Accuracy:", train_accuracy)
     print("Test Accuracy:", test_accuracy)
 
+# I would choose max_depth = 10 for production.
+# It gives strong test accuracy without almost memorizing the training data.
+# The unlimited tree has almost perfect training accuracy, which shows more overfitting.
+
 # Final Decision Tree model
 
 final_tree = DecisionTreeClassifier(
@@ -317,11 +321,6 @@ print(classification_report(y_test, final_tree_pred))
 
 # This shows that deeper trees can overfit the training data.
 
-# I would choose max_depth = 10 for production.
-
-# It gives strong test accuracy without almost memorizing the training data.
-
-# The unlimited tree has almost perfect training accuracy, which shows more overfitting.
 # Random Forest
 
 rf = RandomForestClassifier(
@@ -604,7 +603,8 @@ print(classification_report(y_test, logistic_pipeline_pred))
 # The pipelines do not have the same structure.
 # Logistic Regression needs scaling, but Random Forest does not.
 
-# PCA is not included because it did not improve Logistic Regression.
+# I use scaled Logistic Regression because it performed better than PCA Logistic Regression in Task 3.
+# PCA is not included because the PCA version had lower test accuracy.
 
 # Pipelines keep the model steps together.
 # This makes the model easier to use and share with someone else.

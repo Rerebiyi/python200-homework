@@ -164,6 +164,9 @@ for c in c_values:
 
     model.fit(X_train_scaled, y_train)
 
+
+# Get the coefficients from each Logistic Regression model inside OneVsRestClassifier.
+
     coefficients = np.vstack([
         estimator.coef_
         for estimator in model.estimators_
@@ -186,7 +189,7 @@ y_digits = digits.target
 images = digits.images
 
 
-# Question 1
+# PCA Question 1
 
 print("X_digits shape:", X_digits.shape)
 print("images shape:", images.shape)
@@ -209,7 +212,7 @@ plt.savefig("assignments_03/outputs/sample_digits.png")
 plt.close()
 
 
-# Question 2
+# PCA Question 2
 
 pca = PCA()
 
@@ -236,7 +239,7 @@ plt.close()
 # Yes, most of the same digits cluster together.
 
 
-# Question 3
+# PCA Question 3
 
 cumulative_variance = np.cumsum(
     pca.explained_variance_ratio_
@@ -269,7 +272,7 @@ plt.close()
 # About 13 components explain 80% of the variance.
 
 
-# Question 4
+# PCA Question 4
 
 def reconstruct_digit(
     sample_idx,
