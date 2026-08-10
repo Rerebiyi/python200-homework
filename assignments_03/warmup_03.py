@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 from sklearn.datasets import load_iris, load_digits
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.multiclass import OneVsRestClassifier
@@ -21,9 +20,11 @@ iris = load_iris(as_frame=True)
 X = iris.data
 y = iris.target
 
+
 # --- Preprocessing ---
 
 # Question 1
+
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -39,6 +40,7 @@ print("y_test shape:", y_test.shape)
 
 
 # Question 2
+
 scaler = StandardScaler()
 
 # Fit the scaler using only the training data to prevent data leakage.
@@ -50,9 +52,11 @@ X_test_scaled = scaler.transform(X_test)
 print("Column means of X_train_scaled:")
 print(X_train_scaled.mean(axis=0))
 
+
 # --- KNN ---
 
 # Question 1
+
 knn = KNeighborsClassifier(n_neighbors=5)
 
 knn.fit(X_train, y_train)
@@ -63,7 +67,9 @@ print("Accuracy:", accuracy_score(y_test, y_pred))
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 
+
 # Question 2
+
 knn_scaled = KNeighborsClassifier(n_neighbors=5)
 
 knn_scaled.fit(X_train_scaled, y_train)
@@ -75,7 +81,9 @@ print("Scaled Accuracy:", accuracy_score(y_test, y_pred_scaled))
 # Scaling made the accuracy a little lower for this dataset.
 # The Iris features already work well together without scaling.
 
+
 # Question 3
+
 scores = cross_val_score(knn, X_train, y_train, cv=5)
 
 print("Cross-validation scores:", scores)
@@ -84,19 +92,24 @@ print("Standard deviation:", scores.std())
 
 # This is more trustworthy because it tests the model more than one time.
 
+
 # Question 4
+
 k_values = [1, 3, 5, 7, 9, 11, 13, 15]
 
 for k in k_values:
     knn = KNeighborsClassifier(n_neighbors=k)
     scores = cross_val_score(knn, X_train, y_train, cv=5)
     print("k =", k, "Mean CV score:", scores.mean())
-    
-# I would choose k = 5 because it ties for the highest mean score and uses fewer neighbors.
+
+# I would choose k = 5 because it ties for the highest mean score
+# and uses fewer neighbors.
+
 
 # --- Classifier Evaluation ---
 
 # Question 1
+
 cm = confusion_matrix(y_test, y_pred)
 
 display = ConfusionMatrixDisplay(
@@ -107,18 +120,20 @@ display = ConfusionMatrixDisplay(
 display.plot()
 
 plt.tight_layout()
-plt.savefig(
-    "assignments_03/outputs/pca_reconstructions.png",
-    bbox_inches="tight"
-)
+plt.savefig("assignments_03/outputs/knn_confusion_matrix.png")
 plt.close()
 
 # The model does not confuse any species because all predictions are correct.
 
+
 # --- Decision Trees ---
 
 # Question 1
-tree = DecisionTreeClassifier(max_depth=3, random_state=42)
+
+tree = DecisionTreeClassifier(
+    max_depth=3,
+    random_state=42
+)
 
 tree.fit(X_train, y_train)
 
@@ -129,13 +144,13 @@ print("\nDecision Tree Classification Report:")
 print(classification_report(y_test, tree_pred))
 
 # The Decision Tree accuracy is lower than the KNN accuracy.
-
 # Scaling should not change the result because Decision Trees do not use distance.
 
 
 # --- Logistic Regression and Regularization ---
 
 # Question 1
+
 c_values = [0.01, 1.0, 100]
 
 for c in c_values:
@@ -162,6 +177,7 @@ for c in c_values:
 # As C increases, the total coefficient size increases.
 # Regularization keeps the coefficients smaller.
 
+
 # --- PCA ---
 
 digits = load_digits()
@@ -169,7 +185,9 @@ X_digits = digits.data
 y_digits = digits.target
 images = digits.images
 
-# Question1
+
+# Question 1
+
 print("X_digits shape:", X_digits.shape)
 print("images shape:", images.shape)
 
@@ -177,7 +195,12 @@ fig, axes = plt.subplots(1, 10, figsize=(12, 2))
 
 for digit in range(10):
     index = np.where(y_digits == digit)[0][0]
-    axes[digit].imshow(images[index], cmap="gray_r")
+
+    axes[digit].imshow(
+        images[index],
+        cmap="gray_r"
+    )
+
     axes[digit].set_title(str(digit))
     axes[digit].axis("off")
 
@@ -185,7 +208,9 @@ plt.tight_layout()
 plt.savefig("assignments_03/outputs/sample_digits.png")
 plt.close()
 
+
 # Question 2
+
 pca = PCA()
 
 pca.fit(X_digits)
@@ -210,63 +235,158 @@ plt.close()
 
 # Yes, most of the same digits cluster together.
 
+
 # Question 3
-cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
+
+cumulative_variance = np.cumsum(
+    pca.explained_variance_ratio_
+)
+
+components_80 = np.argmax(
+    cumulative_variance >= 0.80
+) + 1
+
+print("Components for 80% variance:", components_80)
 
 plt.plot(
     range(1, len(cumulative_variance) + 1),
     cumulative_variance
 )
 
+plt.axhline(
+    y=0.80,
+    linestyle="--"
+)
+
 plt.xlabel("Number of Components")
 plt.ylabel("Cumulative Explained Variance")
 
-plt.savefig("assignments_03/outputs/pca_variance_explained.png")
+plt.savefig(
+    "assignments_03/outputs/pca_variance_explained.png"
+)
 plt.close()
 
 # About 13 components explain 80% of the variance.
 
 
-# Q4
-def reconstruct_digit(sample_idx, scores, pca, n_components):
+# Question 4
+
+def reconstruct_digit(
+    sample_idx,
+    scores,
+    pca,
+    n_components
+):
     """Reconstruct one digit using the first n_components principal components."""
+
     reconstruction = pca.mean_.copy()
+
     for i in range(n_components):
-        reconstruction = reconstruction + scores[sample_idx, i] * pca.components_[i]
+        reconstruction = (
+            reconstruction
+            + scores[sample_idx, i] * pca.components_[i]
+        )
+
     return reconstruction.reshape(8, 8)
 
 
 component_values = [2, 5, 15, 40]
-row_labels = ["Original", "n = 2", "n = 5", "n = 15", "n = 40"]
 
-fig, axes = plt.subplots(5, 5, figsize=(8, 8))
+fig, axes = plt.subplots(
+    5,
+    5,
+    figsize=(8, 8)
+)
+
 
 # Original row
+
 for i in range(5):
-    axes[0, i].imshow(images[i], cmap="gray_r")
-    axes[0, i].set_title(str(y_digits[i]))
+    axes[0, i].imshow(
+        images[i],
+        cmap="gray_r"
+    )
+
+    axes[0, i].set_title(
+        str(y_digits[i])
+    )
+
     axes[0, i].axis("off")
 
 
-
 # Reconstruction rows
-for row, n in enumerate(component_values, start=1):
-    for i in range(5):
-        reconstructed_image = reconstruct_digit(i, scores, pca, n)
 
-        axes[row, i].imshow(reconstructed_image, cmap="gray_r")
+for row, n in enumerate(
+    component_values,
+    start=1
+):
+    for i in range(5):
+        reconstructed_image = reconstruct_digit(
+            i,
+            scores,
+            pca,
+            n
+        )
+
+        axes[row, i].imshow(
+            reconstructed_image,
+            cmap="gray_r"
+        )
+
         axes[row, i].axis("off")
 
 
 # Add row labels
-fig.text(0.05, 0.83, "Original", va="center", fontsize=10)
-fig.text(0.05, 0.66, "n = 2", va="center", fontsize=10)
-fig.text(0.05, 0.49, "n = 5", va="center", fontsize=10)
-fig.text(0.05, 0.32, "n = 15", va="center", fontsize=10)
-fig.text(0.05, 0.15, "n = 40", va="center", fontsize=10)
 
-plt.tight_layout(rect=[0.10, 0, 1, 1])
-plt.savefig("assignments_03/outputs/pca_reconstructions.png")
+fig.text(
+    0.05,
+    0.83,
+    "Original",
+    va="center",
+    fontsize=10
+)
+
+fig.text(
+    0.05,
+    0.66,
+    "n = 2",
+    va="center",
+    fontsize=10
+)
+
+fig.text(
+    0.05,
+    0.49,
+    "n = 5",
+    va="center",
+    fontsize=10
+)
+
+fig.text(
+    0.05,
+    0.32,
+    "n = 15",
+    va="center",
+    fontsize=10
+)
+
+fig.text(
+    0.05,
+    0.15,
+    "n = 40",
+    va="center",
+    fontsize=10
+)
+
+plt.tight_layout(
+    rect=[0.10, 0, 1, 1]
+)
+
+plt.savefig(
+    "assignments_03/outputs/pca_reconstructions.png",
+    bbox_inches="tight"
+)
+
 plt.close()
 
 # The digits become clearly recognizable around n = 15.
