@@ -261,8 +261,15 @@ print(accuracy_score(y_test, knn_pca_pred))
 print("KNN PCA Classification Report:")
 print(classification_report(y_test, knn_pca_pred))
 
-# Scaling improved KNN a lot.
-# PCA gave almost the same result as scaled KNN.
+# Scaling improved KNN a lot compared to the unscaled data.
+
+# Scaled KNN performed slightly better than PCA KNN.
+
+# Scaled KNN accuracy was about 0.908, while PCA KNN was about 0.907.
+
+# I would choose scaled KNN because it had the slightly higher test accuracy.
+
+# This matches my Task 2 guess that PCA might reduce the data without improving accuracy.
 
 # Decision Tree
 
@@ -304,14 +311,17 @@ print(classification_report(y_test, final_tree_pred))
 
 # Scaling does not make much difference for Decision Trees
 # because they do not use distances between data points.
-
 # As the tree gets deeper, the training accuracy gets higher.
+
 # The test accuracy improves only a little.
+
 # This shows that deeper trees can overfit the training data.
 
-# I would choose max_depth = 10 because it gives high test accuracy
-# without making the tree too large.
+# I would choose max_depth = 10 for production.
 
+# It gives strong test accuracy without almost memorizing the training data.
+
+# The unlimited tree has almost perfect training accuracy, which shows more overfitting.
 # Random Forest
 
 rf = RandomForestClassifier(
@@ -408,17 +418,15 @@ plt.close()
 
 # These results make sense because spam emails often contain these words and characters.
 
-# Random Forest had the highest accuracy.
+# Random Forest had the highest overall test accuracy.
 
-# Scaling improved KNN a lot compared to unscaled data.
+# Scaled KNN performed slightly better than PCA KNN.
 
-# KNN with PCA was almost the same as scaled KNN.
+# Logistic Regression also performed better with scaled data than PCA data.
 
-# Logistic Regression worked better with scaled data than PCA.
+# PCA did not improve test accuracy for either model.
 
-# PCA did not improve the accuracy for these models.
-
-# This matches my Task 2 guess because PCA did not improve accuracy.
+# This matches my Task 2 guess that PCA might reduce the data without improving accuracy.
 
 # Accuracy is not the only thing I would focus on.
 
