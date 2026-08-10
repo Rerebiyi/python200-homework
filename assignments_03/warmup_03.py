@@ -164,15 +164,12 @@ for c in c_values:
 
     model.fit(X_train_scaled, y_train)
 
-
-# Get the coefficients from each Logistic Regression model inside OneVsRestClassifier.
-
-    coefficients = np.vstack([
-        estimator.coef_
+    # Add the coefficient sizes from all Logistic Regression
+    # models inside OneVsRestClassifier.
+    total_coefficient_size = sum(
+        np.abs(estimator.coef_).sum()
         for estimator in model.estimators_
-    ])
-
-    total_coefficient_size = np.abs(coefficients).sum()
+    )
 
     print("C value:", c)
     print("Total coefficient size:", total_coefficient_size)

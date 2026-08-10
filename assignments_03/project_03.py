@@ -195,21 +195,28 @@ pca.fit(X_train_scaled)
 
 cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
 
+n = np.argmax(cumulative_variance >= 0.90) + 1
+
+print("Components for 90% variance:", n)
+
 plt.figure(figsize=(6, 4))
+
 plt.plot(
     range(1, len(cumulative_variance) + 1),
     cumulative_variance
 )
 
+plt.axhline(y=0.90, linestyle="--")
+plt.axvline(x=n, linestyle="--")
+
 plt.xlabel("Number of Components")
 plt.ylabel("Cumulative Explained Variance")
+plt.title("Spambase PCA Cumulative Variance")
 
-plt.savefig("assignments_03/outputs/spambase_pca_variance.png")
+plt.savefig(
+    "assignments_03/outputs/spambase_pca_cumulative_variance.png"
+)
 plt.close()
-
-n = np.argmax(cumulative_variance >= 0.90) + 1
-
-print("Components for 90% variance:", n)
 
 X_train_pca = pca.transform(X_train_scaled)[:, :n]
 X_test_pca = pca.transform(X_test_scaled)[:, :n]
@@ -261,13 +268,11 @@ print(accuracy_score(y_test, knn_pca_pred))
 print("KNN PCA Classification Report:")
 print(classification_report(y_test, knn_pca_pred))
 
-# Scaling improved KNN a lot compared to the unscaled data.
+# Scaled KNN performed slightly better than PCA KNN on the test set.
 
-# Scaled KNN performed slightly better than PCA KNN.
+# Scaled KNN accuracy was about 90.77%, while PCA KNN was about 90.66%.
 
-# Scaled KNN accuracy was about 0.908, while PCA KNN was about 0.907.
-
-# I would choose scaled KNN because it had the slightly higher test accuracy.
+# I would choose scaled KNN because PCA did not improve test accuracy.
 
 # This matches my Task 2 guess that PCA might reduce the data without improving accuracy.
 
@@ -290,9 +295,14 @@ for depth in depths:
     print("Training Accuracy:", train_accuracy)
     print("Test Accuracy:", test_accuracy)
 
-# I would choose max_depth = 10 for production.
-# It gives strong test accuracy without almost memorizing the training data.
-# The unlimited tree has almost perfect training accuracy, which shows more overfitting.
+# I chose max_depth = 10 for the final Decision Tree.
+
+# Depth 10 had about 96.74% training accuracy and 90.88% test accuracy.
+
+# Using no maximum depth only slightly improved test accuracy,
+# but training accuracy increased to almost 100%.
+
+# This shows more overfitting, so I would use max_depth = 10.
 
 # Final Decision Tree model
 
@@ -601,10 +611,15 @@ print(classification_report(y_test, logistic_pipeline_pred))
 
 
 # The pipelines do not have the same structure.
-# Logistic Regression needs scaling, but Random Forest does not.
 
-# I use scaled Logistic Regression because it performed better than PCA Logistic Regression in Task 3.
-# PCA is not included because the PCA version had lower test accuracy.
+# Random Forest does not need scaling, so its pipeline only needs the classifier.
+
+# Logistic Regression performed better without PCA.
+
+# Scaled Logistic Regression had about 92.94% test accuracy,
+# while Logistic Regression with PCA had about 91.86%.
+
+# Therefore, PCA is not included in the final Logistic Regression pipeline.
 
 # Pipelines keep the model steps together.
 # This makes the model easier to use and share with someone else.
