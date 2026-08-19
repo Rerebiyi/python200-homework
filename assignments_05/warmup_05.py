@@ -267,10 +267,12 @@ response = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": f"""Analyze this review and return only valid JSON.
-Do not use markdown or code fences.
+            "content": f"""Analyze the review below.
 
-Use these keys:
+Respond ONLY with valid JSON.
+Do not include markdown, code fences, explanations, or any text outside the JSON object.
+
+Use exactly these keys:
 sentiment
 confidence (a float from 0 to 1)
 reason (one sentence)

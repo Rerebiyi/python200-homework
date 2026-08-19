@@ -60,14 +60,20 @@ def rewrite_bullets(bullets: list[str]) -> list[dict]:
     messages = [{"role": "user", "content": prompt}]
     response = get_completion(messages)
   
-    results = json.loads(response)
+    try:
+        results = json.loads(response)
 
-    for item in results:
-        print("Original:", item["original"])
-        print("Improved:", item["improved"])
-        print()
+        for item in results:
+            print("Original:", item["original"])
+            print("Improved:", item["improved"])
+            print()
 
-    return results
+        return results
+
+    except json.JSONDecodeError:
+        print("The response was not valid JSON.")
+        print("Raw Response:", response)
+        return []
 
 
 bullets = [
@@ -89,9 +95,10 @@ def generate_cover_letter(job_title: str, background: str) -> str:
     prompt = f"""
     You write strong cover letter opening paragraphs for career changers.
     The paragraph should be 3-5 sentences: confident, specific, and free of clichés.
-    Do not invent skills, results, experiences, or motivations that are not stated in the background.
-
-    Here are two examples of the style and tone you should match:
+    Do not invent skills, results, experiences, motivations, achievements, or personal qualities.
+    Only use facts that are directly stated in the background.
+    Do not add claims about passion, impact, success, or abilities unless they are explicitly provided.
+        Here are two examples of the style and tone you should match:
 
     Example 1:
     Role: Data Analyst at a healthcare nonprofit
@@ -144,7 +151,7 @@ def is_safe(text: str) -> bool:
     flagged = result.results[0].flagged
 
     if flagged:
-        print("This input was flagged. Please rephrase your message.")
+        print("I can't process that message. Please rephrase it and try again.")
         return False
 
     return True
@@ -207,7 +214,17 @@ def run_chatbot():
             if not is_safe(bullet_text):
                 continue
 
-            rewrite_bullets(raw_bullets)
+            results = rewrite_bullets(raw_bullets)
+
+            messages.append({
+                "role": "user",
+                 "content": "Rewrite these resume bullets:\n" + bullet_text
+            })
+
+            messages.append({
+                "role": "assistant",
+                "content": str(results)
+            })
 
         # 6. Check if the user wants a cover letter
         elif "cover letter" in user_input.lower():
@@ -219,6 +236,16 @@ def run_chatbot():
 
             cover_letter = generate_cover_letter(job_title, background)
             print("\nJob Application Helper:", cover_letter)
+
+            messages.append({
+                "role": "user",
+                 "content": f"Write a cover letter opening for {job_title}. Background: {background}"
+            })
+
+            messages.append({
+                "role": "assistant",
+                "content": cover_letter
+            })
 
         # 7. Otherwise, handle it as a regular chat turn
         else:
@@ -240,7 +267,7 @@ if __name__ == "__main__":
 # --- Task 6: Ethics Reflection ---
 # Format: Option A - Comment block
 #
-# The bot could be biased toward certain writing styles or backgrounds.
+# The bot could be biased toward certain writing styles, industries, or backgrounds.
 # This could cause it to give better advice to some people than others.
 # Users should review the output because the bot can make mistakes or add details that are not true.
-# I would add a warning telling users to review everything before submitting it.
+# If I used this tool professionally, I would add a warning telling users to review everything before submitting it.
