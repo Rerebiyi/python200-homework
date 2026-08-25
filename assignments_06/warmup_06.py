@@ -30,11 +30,12 @@ from llama_index.readers.file import PyMuPDFReader
 
 # Concepts Question 2
 
-# A wrong answer can be harmful if the person believes it is true.
-# For example, wrong legal information could cause someone to make a bad choice.
-# If the AI sounds confident, people may trust the answer more. 
+# A confidently wrong answer can cause harm because someone may believe it and act on it.
+# For example, wrong legal information could cause someone to make a decision that creates legal problems.
+# Tone affects trust because a confident answer can sound correct even when the information is wrong.
 
 # Concepts Q3
+# Correct order:
 
 # steps = [
 #     "Extract text from source documents",
