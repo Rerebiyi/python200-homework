@@ -100,8 +100,7 @@ def simple_keyword_retrieval(query, documents, verbose=True):
             print("\nNo overlapping keywords found.")
         return [("None found", "No relevant content.")]
 
-
-    # Keyword Question 1
+# Keyword Question 1
 
 query = "What are your hours on weekends?"
 
