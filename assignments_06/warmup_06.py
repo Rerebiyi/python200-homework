@@ -1,7 +1,3 @@
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
-from llama_index.llms.openai import OpenAI
-from llama_index.core.evaluation import FaithfulnessEvaluator, RelevancyEvaluator
-from llama_index.readers.file import PyMuPDFReader
 from dotenv import load_dotenv
 import os
 
@@ -9,6 +5,11 @@ if load_dotenv():
     print("API key loaded successfully.")
 else:
     print("Warning: could not load API key. Check your .env file.")
+
+from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+from llama_index.llms.openai import OpenAI
+from llama_index.core.evaluation import FaithfulnessEvaluator, RelevancyEvaluator
+from llama_index.readers.file import PyMuPDFReader
 
 
 # --- RAG Concepts ---
@@ -88,8 +89,7 @@ def simple_keyword_retrieval(query, documents, verbose=True):
         scores.append((score, name, content))
         if verbose:
             print(f"[{name}] overlap={score} -> {sorted(overlap)}")
-
-    scores.sort(reverse=True)
+    scores.sort(key=lambda x: x[0], reverse=True)
     best = next(((name, content) for score, name, content in scores if score > 0), None)
     if best:
         if verbose:
@@ -115,8 +115,8 @@ documents = {
 result = simple_keyword_retrieval(query, documents, verbose=True)
 print("Selected document:", result[0][0])
 
-# loyalty.txt was selected because it tied with other documents
-# and came first after the results were sorted.
+# hours.txt was selected because it matched the word weekends.
+
 
 
 # Keyword Question 2
@@ -126,9 +126,9 @@ query = "Do you have anything without caffeine?"
 result = simple_keyword_retrieval(query, documents, verbose=True)
 print("Selected document:", result[0][0])
 
-# I got no matching document because the words did not match.
-# I do not think keyword RAG worked well here because the answer is in the menu.
-# I think semantic retrieval would work better because it can understand the meaning.
+# No document matched the query, so the function returned the fallback result "None found."
+# Keyword RAG did not work well because the menu has drink options, but the words did not match.
+# Semantic retrieval would work better because it can understand similar meanings instead of exact words.
 
 # Keyword Question 3
 
@@ -157,20 +157,17 @@ print("Selected document:", result[0][0])
 
 # Semantic Question 2
 
-# | Feature                 | Keyword RAG                    | Semantic RAG          |
-# |-------------------------|--------------------------------|-----------------------|
-# | What is compared?       | Exact word overlap             | Meaning of the text   |
-# | What is retrieved?      | Full document                  | Relevant chunks       |
-# | Can it handle synonyms? | No                             | Yes                   |
-# | Storage format          | Plain text dictionary          | Vector store / index  |
-# | Relevance score         | Number of overlapping keywords | Cosine similarity     |
-
+# | Feature                 | Keyword RAG                         | Semantic RAG                       |
+# |-------------------------|-------------------------------------|------------------------------------|
+# | What is compared?       | Words in the question and document  | The meaning of the text            |
+# | What is retrieved?      | Documents with matching words       | Chunks with similar meaning        |
+# | Can it handle synonyms? | Not very well                       | Yes                                |
+# | Storage format          | Text stored in a dictionary         | Embeddings stored in a vector index |
+# | Relevance score         | How many words match                | How similar the meanings are       |
 
 # --- LlamaIndex ---
 
 # LlamaIndex Question 1
-
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 
 pdf_path = "../../python-200-v1/lessons/06_AI_augmentation/resources/brightleaf_pdfs"
 
@@ -178,6 +175,7 @@ docs = SimpleDirectoryReader(
     pdf_path,
     file_extractor={".pdf": PyMuPDFReader()}
 ).load_data()
+
 index = VectorStoreIndex.from_documents(docs)
 
 query_engine = index.as_query_engine(similarity_top_k=3)
@@ -194,19 +192,21 @@ for question in questions:
     print("Answer:", response)
 
     for node_with_score in response.source_nodes:
+        print(f"Document: {node_with_score.node.metadata['file_name']}")
         print(f"Similarity Score: {node_with_score.score:.4f}")
         print(f"Text: {node_with_score.node.get_content()[:150]}...")
         print("-" * 30)
 
-     #Employee Benefits
+# Employee Benefits
 # The first chunk was very relevant to the question.
 # The answer was confident and specific.
-# I did not expect the mission and security chunks to also be retrieved.
+# I did not expect the mission and partnerships documents to also be retrieved.
 
- #Security Policies
+# Security Policies
 # The first chunk was very relevant to the question.
 # The answer was confident and specific.
-# I did not expect the benefits and mission chunks to also be retrieved.
+# I did not expect the benefits and mission documents to also be retrieved.
+
 
 # LlamaIndex Question 2
 
@@ -219,6 +219,7 @@ print("\nTop K = 1")
 print("Response:", response_1)
 
 for node_with_score in response_1.source_nodes:
+    print(f"Document: {node_with_score.node.metadata['file_name']}")
     print(f"Similarity Score: {node_with_score.score:.4f}")
 
 
@@ -229,6 +230,7 @@ print("\nTop K = 5")
 print("Response:", response_5)
 
 for node_with_score in response_5.source_nodes:
+    print(f"Document: {node_with_score.node.metadata['file_name']}")
     print(f"Similarity Score: {node_with_score.score:.4f}")
 
 # The answer was almost the same with top_k=1 and top_k=5.
@@ -244,6 +246,7 @@ print("\nQuestion:", question)
 print("Response:", response)
 
 for node_with_score in response.source_nodes:
+    print(f"Document: {node_with_score.node.metadata['file_name']}")
     print(f"Similarity Score: {node_with_score.score:.4f}")
     print(f"Text: {node_with_score.node.get_content()}")
     print("-" * 30)
@@ -300,15 +303,16 @@ print("\nQ4 Second Query:", q2)
 print("Faithfulness Score:", faithfulness_result2.score)
 print("Relevancy Score:", relevancy_result2.score)
 
-# A faithfulness score of 1.0 means the answer matches the information it was given.
-# A score of 0.0 means the answer includes information that was not given.
+# A faithfulness score of 1.0 means the answer is supported by the documents.
+# A score of 0.0 means the answer includes information that is not supported.
 
 # Relevancy checks if the response answers the question.
-# Faithfulness checks if the response matches the information it was given.
+# Faithfulness checks if the response matches the information in the documents.
 
-# Both questions got a score of 1.0 for both tests.
+# The scores did not change. Both questions got 1.0 for both scores.
 # The stock price question still passed because the model said the answer was not in the documents.
 
 # LLM-as-a-judge means another LLM checks the response.
-# This is useful because written answers are harder to grade with a simple accuracy score.
+# It is used because written answers can have many correct forms,
+# so a simple accuracy score is not always enough.
 

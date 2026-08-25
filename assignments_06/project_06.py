@@ -11,9 +11,10 @@ if load_dotenv():
 else:
     print("Warning: could not load API key. Check your .env file.")
 
-docs_dir = Path(
-    "../../python-200-v1/lessons/06_AI_augmentation/resources/groundwork_docs"
-)
+docs_dir = (
+    Path(__file__).resolve().parent
+    / "../../python-200-v1/lessons/06_AI_augmentation/resources/groundwork_docs"
+).resolve()
 
 assert docs_dir.exists(), f"Document directory not found: {docs_dir}"
 
@@ -80,8 +81,8 @@ for node_with_score in failure_response.source_nodes:
 
 # I asked how much money Groundwork makes each year because that information is not in the documents.
 # The system found related documents, but none of them had the answer.
-# The model did not guess. It clearly said that the information was not provided.
-# This shows that AI responses should still be checked because they may not always have the right information.
+# The model did not guess. It still sounded confident, but it clearly said the information was not provided.
+# This shows that a confident AI response does not always mean it has the answer, so responses should still be checked.
 # I would make the system ignore results that are not relevant enough.
 
 
