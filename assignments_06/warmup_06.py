@@ -34,7 +34,7 @@ from llama_index.readers.file import PyMuPDFReader
 # For example, wrong legal information could cause someone to make a bad choice.
 # If the AI sounds confident, people may trust the answer more. 
 
-# Concepts Question 3
+# Concepts Q3
 
 # steps = [
 #     "Extract text from source documents",
@@ -47,14 +47,14 @@ from llama_index.readers.file import PyMuPDFReader
 #     "Generate a response from the LLM",
 # ]
 
-# 1. Extract text from source documents - Get the text from the documents.
-# 2. Split text into chunks - Break the text into smaller pieces.
-# 3. Convert text chunks into embeddings - Turn each chunk into numbers.
-# 4. Receive the user's query - Get the question from the user.
-# 5. Embed the user's query - Turn the question into numbers.
-# 6. Retrieve the most relevant chunks - Find the chunks that best match the question.
-# 7. Inject retrieved chunks into the prompt - Add the matching chunks to the prompt.
-# 8. Generate a response from the LLM - The model uses the prompt to answer the question.
+# 1. Extract text from source documents - The system gets the text from the documents.
+# 2. Split text into chunks - The system breaks the text into smaller pieces.
+# 3. Convert text chunks into embeddings - The system turns each chunk into numbers that represent its meaning.
+# 4. Receive the user's query - The system gets the question the user wants answered.
+# 5. Embed the user's query - The system turns the question into numbers so it can compare meanings.
+# 6. Retrieve the most relevant chunks - The system finds the chunks that best match the question.
+# 7. Inject retrieved chunks into the prompt - The system adds the matching chunks to the prompt as context.
+# 8. Generate a response from the LLM - The model uses the question and context to create the answer.
 
 # --- Keyword RAG ---
 
@@ -198,14 +198,14 @@ for question in questions:
         print("-" * 30)
 
 # Employee Benefits
-# The first chunk was very relevant to the question.
-# The answer was confident and specific.
+# The first chunk was very relevant because it came from the employee benefits document.
+# The answer sounded confident and specific.
 # I did not expect the mission and partnerships documents to also be retrieved.
 
 # Security Policies
-# The first chunk was very relevant to the question.
-# The answer was confident and specific.
-# I did not expect the benefits and mission documents to also be retrieved.
+# The first chunk was very relevant because it came from the security policy document.
+# The answer sounded confident and specific.
+# I did not expect the employee benefits and mission documents to also be retrieved.
 
 
 # LlamaIndex Question 2
@@ -233,8 +233,9 @@ for node_with_score in response_5.source_nodes:
     print(f"Document: {node_with_score.node.metadata['file_name']}")
     print(f"Similarity Score: {node_with_score.score:.4f}")
 
-# The answer was almost the same with top_k=1 and top_k=5.
-# More context is not always better because some extra chunks may not be useful.
+# The two responses were very similar.
+# The top_k=5 answer included a little more detail because it used more documents.
+# More context is not always better because extra documents may not be useful to the question.
 
 # LlamaIndex Question 3
 
@@ -251,10 +252,10 @@ for node_with_score in response.source_nodes:
     print(f"Text: {node_with_score.node.get_content()}")
     print("-" * 30)
 
-# I did not expect the stock price to be in the documents.
-# The model said the stock price was not there.
-# It still found other BrightLeaf documents.
-# I would make the system ignore results that are not relevant enough.
+# I expected the model to say that the stock price was not in the documents.
+# The model did that, but it still retrieved other BrightLeaf documents that did not contain the answer.
+# This happened because the system still looked for the closest matches even though none answered the question.
+# I would add a minimum similarity score so the system can reject results that are not relevant enough.
 
 # LlamaIndex Question 4
 
@@ -303,16 +304,16 @@ print("\nQ4 Second Query:", q2)
 print("Faithfulness Score:", faithfulness_result2.score)
 print("Relevancy Score:", relevancy_result2.score)
 
-# A faithfulness score of 1.0 means the answer is supported by the documents.
-# A score of 0.0 means the answer includes information that is not supported.
+# A faithfulness score of 1.0 means the response is supported by the retrieved information.
+# A score of 0.0 would mean the response includes information that is not supported.
 
-# Relevancy checks if the response answers the question.
-# Faithfulness checks if the response matches the information in the documents.
+# Relevancy checks whether the response answers the question.
+# Faithfulness checks whether the response is supported by the retrieved information.
 
-# The scores did not change. Both questions got 1.0 for both scores.
-# The stock price question still passed because the model said the answer was not in the documents.
+# I expected the stock price query to get lower scores, but both queries received 1.0 for both scores.
+# The stock price response still scored well because the model correctly said the information was not provided.
+# This shows that a question with missing information does not always produce lower evaluation scores.
 
-# LLM-as-a-judge means another LLM checks the response.
-# It is used because written answers can have many correct forms,
-# so a simple accuracy score is not always enough.
+# LLM-as-a-judge uses another LLM to evaluate the response.
+# This is useful because written answers can be correct in different ways that a simple accuracy check may miss.
 
