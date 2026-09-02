@@ -15,20 +15,17 @@ def celsius_to_fahrenheit(celsius: float) -> str:
 
 
 celsius_to_fahrenheit_schema = {
-    "type": "function",
-    "function": {
-        "name": "celsius_to_fahrenheit",
-        "description": "Convert a Celsius temperature to Fahrenheit.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "celsius": {
-                    "type": "number",
-                    "description": "The temperature in Celsius."
-                }
-            },
-            "required": ["celsius"]
-        }
+    "name": "celsius_to_fahrenheit",
+    "description": "Convert a Celsius temperature to Fahrenheit.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "celsius": {
+                "type": "number",
+                "description": "The temperature in Celsius."
+            }
+        },
+        "required": ["celsius"]
     }
 }
 
@@ -139,18 +136,17 @@ def run_agent(user_prompt: str) -> str:
         print("No tools needed....")
 
     return first_message.content or ''
-
 # Prediction:
-# I do not think this will trigger a tool call because the only tool
-# available is get_current_time, which is not needed for temperature conversion.
-# I expect one API call because the model should answer directly.
+# Tool call: No. The only available tool is get_current_time,
+# and it is not needed to convert Celsius to Fahrenheit.
+# API calls: 1. The model should answer the conversion directly.
 
 result = run_agent("Convert 100 degrees Celsius to Fahrenheit")
 print(result)
 
 # Actual result:
-# My prediction was correct. The agent did not use a tool
-# and only made one API call.
+# My prediction was correct. No tool was called, and the agent
+# answered with one API call.
 
 
 # Question 3
@@ -168,7 +164,10 @@ tools = [
             },
         },
     },
-    celsius_to_fahrenheit_schema,
+    {
+    "type": "function",
+    "function": celsius_to_fahrenheit_schema,
+},
 ]
 
 
@@ -249,15 +248,15 @@ def run_agent(user_prompt: str) -> str:
 
 response_a = run_agent("What is 37 degrees Celsius in Fahrenheit?")
 print("Response A:", response_a)
-# The agent called celsius_to_fahrenheit because the question asked
-# for a temperature conversion that matched the available conversion tool.
+# Response A: A tool was called. The agent used celsius_to_fahrenheit
+# because the question asked for a Celsius-to-Fahrenheit conversion.
 
 
 
 response_b = run_agent("What is the boiling point of water in plain English?")
 print("Response B:", response_b)
-# The agent did not call a tool because it could answer the boiling point
-# question directly. Neither available tool was needed for the response.
+# Response B: No tool was called. The agent could answer the boiling
+# point question directly without using either available tool.
 
 
 
@@ -360,7 +359,7 @@ class CsvManager:
             return error
         return self.df.columns.tolist()
 
-    def summarize_columns(self, columns=None):
+    def summarize_columns(self, columns: list[str] | None = None):
         """
         Return basic summary stats for one or more columns.
 
@@ -633,8 +632,8 @@ tools_schema = [
 def run_agent_cycle(messages, user_text, max_tool_rounds=5):
     """
     Run through one react-agent loop using a simple tool-using agent.
-    `messages` parameter will usually just contain a system prompt,
-    and then user text will be appended.
+    `messages` parameter will usually just contain a system prompt, 
+    and then user text will be appended.  
 
     The loop has three main steps:
 
@@ -651,9 +650,9 @@ def run_agent_cycle(messages, user_text, max_tool_rounds=5):
         whether it has reached the goal.
 
     Stop condition:
-      - If the model returns an assistant message with no tool calls, this is the
-        final answer for this react cycle, this implies that reasoning alone without
-        tool calls was enough.
+      - If the model returns an assistant message with no tool calls, this is the 
+        final answer for this react cycle, this implies that reasoning alone without 
+        tool calls was enough.  
       - max_tool_rounds is a safety cap to prevent infinite loops.
     """
     messages.append({"role": "user", "content": user_text})
@@ -664,22 +663,17 @@ def run_agent_cycle(messages, user_text, max_tool_rounds=5):
         LLMs conversation history. The model will read this tool output on the next
         REASON step.
         """
-        content = (
-            json.dumps(result, default=str)
-            if not isinstance(result, str)
-            else result
-        )
-
+        content = json.dumps(result, default=str) if not isinstance(result, str) else result
         tool_message = {
             "role": "tool",
             "tool_call_id": tool_call_id,
             "content": content,
         }
-
         return tool_message
 
     for loop_idx in range(max_tool_rounds):
         # REASON: call the model
+        # Here it will make use of any previous tool outputs it appended ("observed")
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=messages,
@@ -688,6 +682,8 @@ def run_agent_cycle(messages, user_text, max_tool_rounds=5):
 
         msg = response.choices[0].message
 
+        # Append the assistant message to the conversation history.
+        # Use a plain dict so `messages` stays simple and inspectable.
         assistant_entry = {
             "role": "assistant",
             "content": msg.content
@@ -704,7 +700,8 @@ def run_agent_cycle(messages, user_text, max_tool_rounds=5):
         if not msg.tool_calls:
             return msg.content
 
-        # ACT + OBSERVE
+        # ACT + OBSERVE: run each tool call, then append its result.
+        # Note there may be multiple tool calls
         for tool_call in msg.tool_calls:
             name = tool_call.function.name
             tool_args = json.loads(tool_call.function.arguments or "{}")
@@ -719,21 +716,18 @@ def run_agent_cycle(messages, user_text, max_tool_rounds=5):
                 try:
                     result = fn(**tool_args) if tool_args else fn()
                 except Exception as e:
-                    print(
-                        f"Tool error in {name}: "
-                        f"{type(e).__name__}: {e}"
-                    )
+                    print(f"Tool error in {name}: {type(e).__name__}: {e}")
                     result = {
-                        "error": (
-                            f"Tool '{name}' failed: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        "error": f"Tool '{name}' failed: {type(e).__name__}: {e}"
                     }
 
-            # OBSERVE
+            # OBSERVE: append the tool result back into the conversation history.
             messages.append(
                 observe_tool_result(tool_call.id, result)
             )
+
+            # After we appending information about all tool outputs,
+            # we loop back and REASON again.
 
     return "I hit the tool-round limit. Try a simpler request."
 
@@ -789,8 +783,10 @@ def compute_correlation(col1: str, col2: str) -> dict:
 
 print(compute_correlation.description)
 
-# Smolagents makes the tool description for me instead of using a JSON schema.
-# It uses the function name, type hints, and docstring to understand the tool.
+# Smolagents automatically creates the tool description and schema from the
+# function name, type hints, and docstring instead of making me write JSON manually.
+# As the developer, I need to provide clear type hints and a detailed docstring
+# so smolagents can generate an accurate description.
 
 
 # Q8
@@ -942,17 +938,21 @@ response_code = code_agent.run(
 print("ToolCallingAgent:", response_tool)
 print("CodeAgent:", response_code)
 
-# The ToolCallingAgent made the scatter plot, but it did not actually
-# change the dots to green because the plot_data tool has no color option.
-# The CodeAgent wrote its own code to make the dots green and saved the plot.
-# Tool agents are better for tasks the tools already support, while code
-# agents are better when extra customization is needed.
+# ToolCallingAgent: It used the available plotting tool and created the scatter plot,
+# but it did not change the dots to green because the tool does not support color.
+
+# CodeAgent: It wrote and ran Python code to create the scatter plot with green dots.
+
+# This shows that ToolCallingAgent is better when the available tools already match
+# the task, while CodeAgent is more useful when the task needs custom behavior
+# that the tools cannot provide.
 
 
 # Question 9
 
-# 1. A ToolCallingAgent is better for a simple task like loading a CSV file.
-# It works well because the tool already knows exactly how to do the task.
+# 1. A ToolCallingAgent is better for a task like loading a CSV file and
+# listing its columns. This is a good fit because the task is predictable
+# and can be completed using specific tools that already exist.
 
 # 2. A CodeAgent can generate and run its own code, which could cause errors
 # or run unsafe code. A ToolCallingAgent can only use the tools it is given.

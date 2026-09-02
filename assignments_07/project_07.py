@@ -188,7 +188,7 @@ Use the available tools for loading data, summarizing columns, computing correla
 and ranking countries. Write Python code directly only when the tools are not sufficient
 (for example, when creating custom plots or computing something the tools don't cover).
 Be concise and student-friendly in your responses.
-"When writing Python code for analysis or plotting, use the preloaded DataFrame named happiness_df. Do not create simulated or placeholder data."
+When writing Python code for analysis or plotting, use the preloaded DataFrame named happiness_df. Do not create simulated or placeholder data.
 """
 
 
@@ -231,6 +231,7 @@ if __name__ == "__main__":
     agent.python_executor.send_variables({"happiness_df": df})
     for query in queries:
         print(f"\n--- Query: {query} ---")
+        agent.python_executor.send_variables({"happiness_df": df})
         response = agent.run(query, reset=False)
         print(response)
 
@@ -241,6 +242,8 @@ if __name__ == "__main__":
     my_query_1 = (
         "Which 5 countries had the highest healthy life expectancy in 2019?"
     )
+
+    agent.python_executor.send_variables({"happiness_df": df})
 
     response_1 = agent.run(
         my_query_1,
@@ -257,7 +260,8 @@ if __name__ == "__main__":
         "Create a scatter plot comparing social support and happiness score for 2024. "
         "Save it to outputs/social_support_vs_happiness.png."
     )
-
+    agent.python_executor.send_variables({"happiness_df": df})
+    
     response_2 = agent.run(
         my_query_2,
         reset=False,
@@ -271,9 +275,10 @@ if __name__ == "__main__":
     # --- Task 5: Reflection ---
     #
     # 1. The agent said the correlation was statistically significant because the
-    #    p-value was 0.0. It used the p-value correctly, but it did not clearly state
-    #    the threshold. A common threshold for significance is 0.05.
-    #
+    #    p-value was 0.0. It used the p-value correctly because 0.0 is below the
+    #    usual significance threshold of 0.05. The agent did not explicitly state
+    #    the 0.05 threshold in its response, but its significance conclusion was correct.
+        
     # 2. I was surprised that the agent could create plots by writing its own code.
     #    For example, it created and saved a scatter plot without using a plotting tool.
     #
