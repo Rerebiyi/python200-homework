@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+venv_week6/
+
+.DS_Store
+assignments/
+.env
