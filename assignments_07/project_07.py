@@ -1,18 +1,26 @@
 import matplotlib
 matplotlib.use("Agg")
+
 from pathlib import Path
 import os
+
 from dotenv import load_dotenv
 import pandas as pd
 from scipy.stats import pearsonr
 from smolagents import CodeAgent, OpenAIServerModel, tool
 
+
 # --- Task 1 ---
 
 df = None
 
-DATA_PATH = Path("../assignments_01/outputs/merged_happiness.csv")
-FALLBACK_DIR = Path("../assignments/resources/happiness_project/")
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent
+
+df = None
+
+DATA_PATH = REPO_ROOT / "assignments_01/outputs/merged_happiness.csv"
+FALLBACK_DIR = REPO_ROOT / "assignments/resources/happiness_project"
 
 
 @tool
@@ -94,7 +102,10 @@ def compute_correlation(col1: str, col2: str) -> dict:
     if col1 not in df.columns or col2 not in df.columns:
         return {"error": "One or both columns were not found."}
 
-    if not pd.api.types.is_numeric_dtype(df[col1]) or not pd.api.types.is_numeric_dtype(df[col2]):
+    if (
+        not pd.api.types.is_numeric_dtype(df[col1])
+        or not pd.api.types.is_numeric_dtype(df[col2])
+    ):
         return {"error": "Both columns must be numeric."}
 
     clean_data = df[[col1, col2]].dropna()
@@ -102,7 +113,10 @@ def compute_correlation(col1: str, col2: str) -> dict:
     if len(clean_data) < 2:
         return {"error": "Not enough valid data to compute correlation."}
 
-    pearson_r, p_value = pearsonr(clean_data[col1], clean_data[col2])
+    pearson_r, p_value = pearsonr(
+        clean_data[col1],
+        clean_data[col2],
+    )
 
     return {
         "col1": col1,
@@ -113,7 +127,11 @@ def compute_correlation(col1: str, col2: str) -> dict:
 
 
 @tool
-def get_top_n_countries(column: str, year: int, n: int = 5) -> list[dict] | dict:
+def get_top_n_countries(
+    column: str,
+    year: int,
+    n: int = 5,
+) -> list[dict] | dict:
     """Return the top N countries for a column in a specific year.
 
     Args:
@@ -158,10 +176,9 @@ def get_top_n_countries(column: str, year: int, n: int = 5) -> list[dict] | dict
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
-
 model = OpenAIServerModel(
     api_key=api_key,
-    model_id="gpt-4o-mini"
+    model_id="gpt-4o-mini",
 )
 
 
@@ -171,6 +188,7 @@ Use the available tools for loading data, summarizing columns, computing correla
 and ranking countries. Write Python code directly only when the tools are not sufficient
 (for example, when creating custom plots or computing something the tools don't cover).
 Be concise and student-friendly in your responses.
+"When writing Python code for analysis or plotting, use the preloaded DataFrame named happiness_df. Do not create simulated or placeholder data."
 """
 
 
@@ -188,11 +206,15 @@ agent = CodeAgent(
         "matplotlib.pyplot",
         "scipy.stats",
         "os",
-],
+    ],
     max_steps=8,
 )
 
+
 if __name__ == "__main__":
+
+    # Run relative output paths from the Assignment 7 folder.
+    os.chdir(BASE_DIR)
 
     # --- Task 3 ---
 
@@ -204,57 +226,57 @@ if __name__ == "__main__":
         "Plot happiness_score over the years as a line chart, with one line per region. Save the plot to outputs/happiness_by_region.png.",
     ]
 
-    # Run the first query so the data is loaded.
-    print(f"\n--- Query: {queries[0]} ---")
-    response = agent.run(queries[0], reset=False)
-    print(response)
-
-    # Run the remaining queries with the loaded DataFrame.
-    for query in queries[1:]:
+    # Load the DataFrame and make it available to the CodeAgent's Python executor.
+    load_happiness_data()
+    agent.python_executor.send_variables({"happiness_df": df})
+    for query in queries:
         print(f"\n--- Query: {query} ---")
-        response = agent.run(
-            query,
-            reset=False,
-            additional_args={"df": df},
-        )
+        response = agent.run(query, reset=False)
         print(response)
 
 
     # --- Task 4 ---
 
     # My query 1
-    my_query_1 = "Which 5 countries had the highest healthy life expectancy in 2019?"
+    my_query_1 = (
+        "Which 5 countries had the highest healthy life expectancy in 2019?"
+    )
+
     response_1 = agent.run(
         my_query_1,
         reset=False,
-        additional_args={"df": df},
     )
+
     print(response_1)
-    # Comment: This triggered code generation to find the top 5 countries.
+
+    # Comment: This triggered tool use with get_top_n_countries, not code generation.
+
 
     # My query 2
     my_query_2 = (
         "Create a scatter plot comparing social support and happiness score for 2024. "
         "Save it to outputs/social_support_vs_happiness.png."
     )
+
     response_2 = agent.run(
         my_query_2,
         reset=False,
-        additional_args={"df": df},
     )
+
     print(response_2)
-    # Comment: This triggered code generation to create and save the scatter plot.
+
+    # Comment: This triggered code generation, not tool use.
 
 
-# --- Reflection ---
-#
-# 1. The agent said the correlation was statistically significant because the
-#    p-value was 0.0. It used the p-value correctly, but it did not clearly state
-#    the threshold. A common threshold for significance is 0.05.
-#
-# 2. I was surprised that the agent could create plots by writing its own code.
-#    For example, it created and saved a scatter plot without using a plotting tool.
-#
-# 3. I would add a tool that compares a country across different years.
-#    It could show how happiness scores changed over time and help find which
-#    countries improved or declined the most.
+    # --- Task 5: Reflection ---
+    #
+    # 1. The agent said the correlation was statistically significant because the
+    #    p-value was 0.0. It used the p-value correctly, but it did not clearly state
+    #    the threshold. A common threshold for significance is 0.05.
+    #
+    # 2. I was surprised that the agent could create plots by writing its own code.
+    #    For example, it created and saved a scatter plot without using a plotting tool.
+    #
+    # 3. I would add a tool that compares a country across different years.
+    #    It could show how happiness scores changed over time and help find which
+    #    countries improved or declined the most.

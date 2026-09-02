@@ -15,17 +15,20 @@ def celsius_to_fahrenheit(celsius: float) -> str:
 
 
 celsius_to_fahrenheit_schema = {
-    "name": "celsius_to_fahrenheit",
-    "description": "Convert a Celsius temperature to Fahrenheit.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "celsius": {
-                "type": "number",
-                "description": "The temperature in Celsius."
-            }
-        },
-        "required": ["celsius"]
+    "type": "function",
+    "function": {
+        "name": "celsius_to_fahrenheit",
+        "description": "Convert a Celsius temperature to Fahrenheit.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "celsius": {
+                    "type": "number",
+                    "description": "The temperature in Celsius."
+                }
+            },
+            "required": ["celsius"]
+        }
     }
 }
 
@@ -137,7 +140,6 @@ def run_agent(user_prompt: str) -> str:
 
     return first_message.content or ''
 
-
 # Prediction:
 # I do not think this will trigger a tool call because the only tool
 # available is get_current_time, which is not needed for temperature conversion.
@@ -146,7 +148,8 @@ def run_agent(user_prompt: str) -> str:
 result = run_agent("Convert 100 degrees Celsius to Fahrenheit")
 print(result)
 
-# My prediction was correct because the agent did not use a tool
+# Actual result:
+# My prediction was correct. The agent did not use a tool
 # and only made one API call.
 
 
@@ -165,10 +168,7 @@ tools = [
             },
         },
     },
-    {
-        'type': 'function',
-        'function': celsius_to_fahrenheit_schema,
-    },
+    celsius_to_fahrenheit_schema,
 ]
 
 
@@ -250,14 +250,14 @@ def run_agent(user_prompt: str) -> str:
 response_a = run_agent("What is 37 degrees Celsius in Fahrenheit?")
 print("Response A:", response_a)
 # The agent called celsius_to_fahrenheit because the question asked
-# for a Celsius to Fahrenheit conversion.
+# for a temperature conversion that matched the available conversion tool.
 
 
 
 response_b = run_agent("What is the boiling point of water in plain English?")
 print("Response B:", response_b)
-# The agent did not call a tool because it could answer the question
-# directly without using either tool.
+# The agent did not call a tool because it could answer the boiling point
+# question directly. Neither available tool was needed for the response.
 
 
 
