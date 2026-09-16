@@ -1,0 +1,20 @@
+{
+    "python_version": "3.9.6",
+    "scikit_learn_version": "1.6.1",
+    "feature_names": [
+        "temperature_2m_max",
+        "temperature_2m_min",
+        "precipitation_sum",
+        "wind_speed_10m_max"
+    ],
+    "best_hyperparameters": {
+        "log_reg__C": 10.0
+    },
+    "test_auc": 0.6955810147299508,
+    "city": {
+        "name": "Piscataway, NJ",
+        "latitude": 40.59,
+        "longitude": -74.46
+    },
+    "label_thresholds": "Max temperature 7-26 C, min temperature at least 0 C, precipitation under 3 mm, and wind speed under 30 km/h."
+}
